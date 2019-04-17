@@ -9,28 +9,28 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TradeSummaryResponseBuilder extends Response{
-    private int numberOfOrders;
-    private int totalQuantity;
+    private long numberOfOrders;
+    private long totalQuantity;
     private double avgPrice;
-    private List<CombinableOrder> combinableOrders;
+    private long totalCombinableOrders;
 
-    public TradeSummaryResponseBuilder withNumberOfOrders(int numberOfOrders){
+    public TradeSummaryResponseBuilder withNumberOfOrders(long numberOfOrders){
         this.numberOfOrders = numberOfOrders;
         return this;
     }
 
-    public TradeSummaryResponseBuilder withTotalQuantity(int totalQuantity){
+    public TradeSummaryResponseBuilder withTotalCombinableOrders(long totalCombinableOrders){
+        this.totalCombinableOrders = totalCombinableOrders;
+        return this;
+    }
+
+    public TradeSummaryResponseBuilder withTotalQuantity(long totalQuantity){
         this.totalQuantity = totalQuantity;
         return this;
     }
 
     public TradeSummaryResponseBuilder withAvgPrice(double avgPrice){
         this.avgPrice = avgPrice;
-        return this;
-    }
-
-    public TradeSummaryResponseBuilder withCombinableOrders(List<CombinableOrder> combinableOrders){
-        this.combinableOrders = combinableOrders;
         return this;
     }
 
@@ -44,11 +44,11 @@ public class TradeSummaryResponseBuilder extends Response{
         return new TradeSummaryResponse(this);
     }
 
-    public int getNumberOfOrders() {
+    public long getNumberOfOrders() {
         return numberOfOrders;
     }
 
-    public int getTotalQuantity() {
+    public long getTotalQuantity() {
         return totalQuantity;
     }
 
@@ -56,7 +56,7 @@ public class TradeSummaryResponseBuilder extends Response{
         return avgPrice;
     }
 
-    public List<CombinableOrder> getCombinableOrders() {
-        return combinableOrders;
+    public long getTotalCombinableOrders() {
+        return totalCombinableOrders;
     }
 }

@@ -16,7 +16,7 @@ public class MyAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
-        if ("weather".equals(username) && "password".equals(password)) {
+        if ("trade".equals(username) && "password".equals(password)) {
             return new UsernamePasswordAuthenticationToken(username, password, Collections.emptyList());
         }else {
             throw new BadCredentialsException("Unable to authenticate");

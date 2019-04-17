@@ -1,4 +1,5 @@
 /*
+
 package com.us.app.trade.config;
 
 import com.us.app.trade.auth.MyAuthenticationProvider;
@@ -14,11 +15,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 
+
 */
 /**
  * @author Udyan Shardhar
  * Security related beans and configurations
  *//*
+
 
 @Configuration
 @EnableWebSecurity

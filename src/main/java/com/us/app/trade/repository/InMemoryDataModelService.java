@@ -1,4 +1,4 @@
-package com.us.app.trade.services;
+package com.us.app.trade.repository;
 
 import com.us.app.trade.dto.*;
 import org.slf4j.Logger;
@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
 public class InMemoryDataModelService {
 
     private static Logger log = LoggerFactory.getLogger(InMemoryDataModelService.class);
-    private static Map<String, TradeVo> IN_MEMORY_TRADES = new HashMap<>();
+    private static Map<String, Trade> IN_MEMORY_TRADES = new HashMap<>();
 
-    private static TradeSummaryResponseBuilder tradeSummaryResponseBuilder = new TradeSummaryResponseBuilder();
+    private static TradeSummaryResponse tradeSummaryResponse = new TradeSummaryResponse();
     private static Map<String, TradeSummaryResponse> GROUP_BY_SECURITY = new HashMap<>();
     private static Map<String, TradeSummaryResponse> GROUP_BY_FUND = new HashMap<>();
 
     public TradeSummaryResponse getTradeSummaryResponse() {
-        return tradeSummaryResponseBuilder.build();
+        return tradeSummaryResponse;
     }
 
 
@@ -41,7 +41,7 @@ public class InMemoryDataModelService {
             System.out.println("Execute method with configured executor - "
                     + Thread.currentThread().getName());
             Thread.sleep(10000);
-            tradeRequest.getTradeVos().forEach(p -> IN_MEMORY_TRADES.put(p.getOrderId(), p));
+            tradeRequest.getTrades().forEach(p -> IN_MEMORY_TRADES.put(p.getOrderId(), p));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,7 +55,8 @@ public class InMemoryDataModelService {
         groupByFund();
     }
 
-    public Map<String, TradeSummaryResponse> prepareGroupData(ConcurrentMap<String, List<TradeVo>> groupBySecuirty){
+    public Map<String, TradeSummaryResponse> prepareGroupData(ConcurrentMap<String, List<Trade>> groupBySecuirty){
+        long startTime = System.currentTimeMillis();
         Map<String, TradeSummaryResponse> groupByType = new HashMap<>();
         groupBySecuirty.values().forEach(p -> {
             final long[] totalQuantity = new long[1];
@@ -70,8 +71,8 @@ public class InMemoryDataModelService {
             double avgPrice = totalPrice[0] / numberOfOrders;
 
             HashMap<Combine, Long> groupData = new HashMap<>();
-            p.forEach(tradeVo -> {
-                Combine combine = new Combine(tradeVo.getSide(), tradeVo.getFund(), tradeVo.getSecurity());
+            p.forEach(trade -> {
+                Combine combine = new Combine(trade.getSide(), trade.getFund(), trade.getSecurity());
                 if(groupData.containsKey(combine)){
                     long value = groupData.get(combine) + 1;
                     groupData.put(combine, value);
@@ -90,17 +91,18 @@ public class InMemoryDataModelService {
                     .build();
             groupByType.put(orderId[0], tradeResponse);
         });
-
+        long finishTime = System.currentTimeMillis();
+        System.out.println("Analysis time duration to prepare group data " + (finishTime-startTime));
         return groupByType;
     }
 
     public void groupBySecuirty() {
-        ConcurrentMap<String, List<TradeVo>> groupBySecuirty = IN_MEMORY_TRADES.values().stream().collect(Collectors.groupingByConcurrent(TradeVo::getSecurity));
+        ConcurrentMap<String, List<Trade>> groupBySecuirty = IN_MEMORY_TRADES.values().stream().collect(Collectors.groupingByConcurrent(Trade::getSecurity));
         GROUP_BY_SECURITY = prepareGroupData(groupBySecuirty);
     }
 
     public void groupByFund(){
-        ConcurrentMap<String, List<TradeVo>> groupByFund = IN_MEMORY_TRADES.values().stream().collect(Collectors.groupingByConcurrent(TradeVo::getFund));
+        ConcurrentMap<String, List<Trade>> groupByFund = IN_MEMORY_TRADES.values().stream().collect(Collectors.groupingByConcurrent(Trade::getFund));
         GROUP_BY_FUND = prepareGroupData(groupByFund);
     }
 
@@ -117,20 +119,21 @@ public class InMemoryDataModelService {
         double avgPrice = totalPrice[0] / numberOfOrders[0];
         Map<Combine, Long> combineLongMap = prepareGroupedData();
         long totalCombinableOrders = combineLongMap.values().stream().filter(p -> p > 1).count();
-        tradeSummaryResponseBuilder = new TradeSummaryResponseBuilder()
+        tradeSummaryResponse = new TradeSummaryResponseBuilder()
                 .withAvgPrice(avgPrice)
                 .withNumberOfOrders(numberOfOrders[0])
                 .withTotalQuantity(totalQuantity[0])
-                .withTotalCombinableOrders(totalCombinableOrders);
+                .withTotalCombinableOrders(totalCombinableOrders)
+                .build();
         long finishTime = System.currentTimeMillis();
         log.debug("Analysis time duration {}", finishTime-startTime);
-        System.out.println("Analysis time duration" + (finishTime-startTime));
+        System.out.println("Analysis time duration to prepare summary data " + (finishTime-startTime));
     }
 
     public Map<Combine, Long> prepareGroupedData(){
         Map<Combine, Long> combineLongMap = new HashMap<>();
-        IN_MEMORY_TRADES.values().forEach(tradeVo -> {
-            Combine combine = new Combine(tradeVo.getSide(), tradeVo.getFund(), tradeVo.getSecurity());
+        IN_MEMORY_TRADES.values().forEach(trade -> {
+            Combine combine = new Combine(trade.getSide(), trade.getFund(), trade.getSecurity());
             if(combineLongMap.containsKey(combine)){
                 long value = combineLongMap.get(combine) + 1;
                 combineLongMap.put(combine, value);

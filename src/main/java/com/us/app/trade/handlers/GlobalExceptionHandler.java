@@ -36,8 +36,8 @@ public class GlobalExceptionHandler {
         return buildWeatherResponseVOError(messages);
     }
 
-
-/*    @ExceptionHandler
+/*
+    @ExceptionHandler
     @ResponseBody
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public TradeSummaryResponse handle(BadCredentialsException exception) {

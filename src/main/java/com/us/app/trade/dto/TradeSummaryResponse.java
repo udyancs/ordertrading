@@ -1,28 +1,26 @@
 package com.us.app.trade.dto;
 
-import java.util.List;
-
 public class TradeSummaryResponse extends Response {
-    private int numberOfOrders;
-    private int totalQuantity;
+    private long numberOfOrders;
+    private long totalQuantity;
     private double avgPrice;
-    private List<CombinableOrder> combinableOrders;
+    private long combinableOrders;
 
     public TradeSummaryResponse(TradeSummaryResponseBuilder builder) {
         this.numberOfOrders = builder.getNumberOfOrders();
         this.totalQuantity = builder.getTotalQuantity();
         this.avgPrice = builder.getAvgPrice();
-        this.combinableOrders = builder.getCombinableOrders();
+        this.combinableOrders = builder.getTotalCombinableOrders();
     }
 
     public TradeSummaryResponse() {
     }
 
-    public int getNumberOfOrders() {
+    public long getNumberOfOrders() {
         return numberOfOrders;
     }
 
-    public int getTotalQuantity() {
+    public long getTotalQuantity() {
         return totalQuantity;
     }
 
@@ -30,7 +28,7 @@ public class TradeSummaryResponse extends Response {
         return avgPrice;
     }
 
-    public List<CombinableOrder> getCombinableOrders() {
+    public long getCombinableOrders() {
         return combinableOrders;
     }
 }

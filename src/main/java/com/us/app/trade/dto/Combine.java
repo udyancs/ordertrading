@@ -26,6 +26,15 @@ public class Combine {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        String temp = side + fund + security;
+        return  (prime * result) + temp.hashCode();
+    }
+
+
     public String getSide() {
         return side;
     }
