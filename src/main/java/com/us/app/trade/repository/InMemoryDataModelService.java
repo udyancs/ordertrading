@@ -1,6 +1,7 @@
 package com.us.app.trade.repository;
 
 import com.us.app.trade.dto.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -27,11 +28,11 @@ public class InMemoryDataModelService {
 
 
     public TradeSummaryResponse getTradeSummaryBySecurity(String security) {
-        return GROUP_BY_SECURITY.get(security);
+        return GROUP_BY_SECURITY.getOrDefault(security, null);
     }
 
     public TradeSummaryResponse getTradeSummaryByFund(String fund) {
-        return GROUP_BY_FUND.get(fund);
+        return GROUP_BY_FUND.getOrDefault(fund, null);
     }
 
 
@@ -42,6 +43,8 @@ public class InMemoryDataModelService {
                     + Thread.currentThread().getName());
             Thread.sleep(10000);
             tradeRequest.getTrades().forEach(p -> IN_MEMORY_TRADES.put(p.getOrderId(), p));
+            scheduleFixedDelayTask();
+            System.out.println("check the data");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,17 +58,17 @@ public class InMemoryDataModelService {
         groupByFund();
     }
 
-    public Map<String, TradeSummaryResponse> prepareGroupData(ConcurrentMap<String, List<Trade>> groupBySecuirty){
+    public Map<String, TradeSummaryResponse> prepareGroupData(ConcurrentMap<String, List<Trade>> groupBySecuirty, String type){
         long startTime = System.currentTimeMillis();
         Map<String, TradeSummaryResponse> groupByType = new HashMap<>();
         groupBySecuirty.values().forEach(p -> {
             final long[] totalQuantity = new long[1];
             final double[] totalPrice = new double[1];
-            final String[] orderId = new String[1];
+            final String[] id = new String[1];
             p.forEach(p1 -> {
                 totalQuantity[0] = totalQuantity[0] + p1.getQuantity();
                 totalPrice[0] = totalPrice[0] + p1.getPrice();
-                orderId[0] = p1.getOrderId();
+                id[0] = type.equals("security") ? p1.getSecurity() : p1.getFund();
             });
             int numberOfOrders = p.size();
             double avgPrice = totalPrice[0] / numberOfOrders;
@@ -82,14 +85,20 @@ public class InMemoryDataModelService {
 
             });
 
-            long totalCombinableOrders = groupData.values().stream().filter(p3 -> p3 > 1).count();
+            List<Map.Entry<Combine, Long>> collect = groupData.entrySet().stream().filter(t -> t.getValue() > 1).collect(Collectors.toList());
+            final String[] temp = new String[1];
+            collect.forEach( t2 -> {
+                Combine key = t2.getKey();
+                temp[0] = StringUtils.isBlank(temp[0]) ? "" : temp[0];
+                temp[0] = t2.getValue() + "(" + key.getSide()+", "+ key.getFund() + ", "+ key.getSecurity() + ")  " + temp[0];
+            });
             TradeSummaryResponse tradeResponse = new TradeSummaryResponseBuilder()
                     .withAvgPrice(avgPrice)
                     .withNumberOfOrders(numberOfOrders)
                     .withTotalQuantity(totalQuantity[0])
-                    .withTotalCombinableOrders(totalCombinableOrders)
+                    .withTotalCombinableOrders(temp[0])
                     .build();
-            groupByType.put(orderId[0], tradeResponse);
+            groupByType.put(id[0], tradeResponse);
         });
         long finishTime = System.currentTimeMillis();
         System.out.println("Analysis time duration to prepare group data " + (finishTime-startTime));
@@ -98,12 +107,12 @@ public class InMemoryDataModelService {
 
     public void groupBySecuirty() {
         ConcurrentMap<String, List<Trade>> groupBySecuirty = IN_MEMORY_TRADES.values().stream().collect(Collectors.groupingByConcurrent(Trade::getSecurity));
-        GROUP_BY_SECURITY = prepareGroupData(groupBySecuirty);
+        GROUP_BY_SECURITY = prepareGroupData(groupBySecuirty, "security");
     }
 
     public void groupByFund(){
         ConcurrentMap<String, List<Trade>> groupByFund = IN_MEMORY_TRADES.values().stream().collect(Collectors.groupingByConcurrent(Trade::getFund));
-        GROUP_BY_FUND = prepareGroupData(groupByFund);
+        GROUP_BY_FUND = prepareGroupData(groupByFund, "fund");
     }
 
     public void prepareSummaryData() {
@@ -118,12 +127,20 @@ public class InMemoryDataModelService {
         });
         double avgPrice = totalPrice[0] / numberOfOrders[0];
         Map<Combine, Long> combineLongMap = prepareGroupedData();
-        long totalCombinableOrders = combineLongMap.values().stream().filter(p -> p > 1).count();
+
+        List<Map.Entry<Combine, Long>> collect = combineLongMap.entrySet().stream().filter(t -> t.getValue() > 1).collect(Collectors.toList());
+        final String[] temp = new String[1];
+        collect.forEach( t2 -> {
+            Combine key = t2.getKey();
+            temp[0] = StringUtils.isBlank(temp[0]) ? "" : temp[0];
+            temp[0] = t2.getValue() + "(" + key.getSide()+", "+ key.getFund() + ", "+ key.getSecurity() + ")  " + temp[0];
+        });
+
         tradeSummaryResponse = new TradeSummaryResponseBuilder()
                 .withAvgPrice(avgPrice)
                 .withNumberOfOrders(numberOfOrders[0])
                 .withTotalQuantity(totalQuantity[0])
-                .withTotalCombinableOrders(totalCombinableOrders)
+                .withTotalCombinableOrders(temp[0])
                 .build();
         long finishTime = System.currentTimeMillis();
         log.debug("Analysis time duration {}", finishTime-startTime);

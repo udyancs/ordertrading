@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Udyan Shardhar
- * Trade controller to handle weather related service end points.
+ * Trade controller to rest end points for api.
  */
 @RestController
 @RequestMapping("/trade")
@@ -31,16 +31,19 @@ public class TradeController {
 
     @GetMapping("/summary")
     public TradeSummaryResponse orderSummary() {
-        return tradeService.getOrderSummary();
+        TradeSummaryResponse orderSummary = tradeService.getOrderSummary();
+        return orderSummary;
     }
 
-    @GetMapping("/summary/bysecurity/{security}")
-    public TradeSummaryResponse orderSummaryBySecurity(@PathVariable String security) {
-        return tradeService.getOrderSummaryBySecurity(security);
+    @GetMapping("/summary/security/{security}")
+    public TradeSummaryResponse orderSummaryBySecurity(@PathVariable String security){
+        TradeSummaryResponse orderSummaryBySecurity = tradeService.getOrderSummaryBySecurity(security);
+        return orderSummaryBySecurity;
     }
 
-    @GetMapping("/summary/byfund/{fund}")
-    public TradeSummaryResponse orderSummaryByFund(@PathVariable String fund) {
-        return tradeService.getOrderSummaryByFund(fund);
+    @GetMapping("/summary/fund/{fund}")
+    public TradeSummaryResponse orderSummaryByFund(@PathVariable String fund){
+        TradeSummaryResponse orderSummaryByFund = tradeService.getOrderSummaryByFund(fund);
+        return orderSummaryByFund;
     }
 }

@@ -1,7 +1,9 @@
 package com.us.app.trade.services;
 
+import com.us.app.trade.dto.ApiError;
 import com.us.app.trade.dto.TradeRequest;
 import com.us.app.trade.dto.TradeSummaryResponse;
+import com.us.app.trade.dto.TradeSummaryResponseBuilder;
 import com.us.app.trade.repository.InMemoryDataModelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,17 +31,28 @@ public class TradeService {
 
     public TradeSummaryResponse getOrderSummary() {
         logger.info("pulling overall order summary");
-        return inMemoryDataModelService.getTradeSummaryResponse();
+        TradeSummaryResponse tradeSummaryResponse = inMemoryDataModelService.getTradeSummaryResponse();
+        return buildResponse(tradeSummaryResponse);
     }
 
     public TradeSummaryResponse getOrderSummaryByFund(String fund) {
         logger.info("pulling order summary for fund {}", fund);
-        return inMemoryDataModelService.getTradeSummaryByFund(fund);
+        TradeSummaryResponse tradeSummaryByFund = inMemoryDataModelService.getTradeSummaryByFund(fund);
+        return buildResponse(tradeSummaryByFund);
     }
 
-    public TradeSummaryResponse getOrderSummaryBySecurity(String security) {
+    public TradeSummaryResponse getOrderSummaryBySecurity(String security){
         logger.info("pulling order summary for security {}", security);
-        return inMemoryDataModelService.getTradeSummaryBySecurity(security);
+
+        TradeSummaryResponse tradeSummaryBySecurity = inMemoryDataModelService.getTradeSummaryBySecurity(security);
+        return buildResponse(tradeSummaryBySecurity);
     }
 
+    private TradeSummaryResponse buildResponse(TradeSummaryResponse response){
+        if(response == null)
+            return new TradeSummaryResponseBuilder()
+                    .withError(new ApiError("Resource not found", "", "RESOURCE_NOT_FOUND"))
+                    .build();
+        return response;
+    }
 }

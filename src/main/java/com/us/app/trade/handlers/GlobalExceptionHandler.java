@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         List<String> messages = fieldErrors.stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.toList());
-        return buildWeatherResponseVOError(messages);
+        return buildTradeSummaryResponse(messages);
     }
 
 /*
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public TradeSummaryResponse handle(BadCredentialsException exception) {
         String message = exception.getMessage();
-        return buildWeatherResponseVOError(List.of(message));
+        return buildTradeSummaryResponse(List.of(message));
     }*/
 
 
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public TradeSummaryResponse handle(Exception exception) {
-        return buildWeatherResponseVOError(List.of("There is some problem with services. Please try again later."));
+        return buildTradeSummaryResponse(List.of("There is some problem with services. Please try again later."));
     }
 
     @ExceptionHandler
@@ -62,14 +62,14 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toList());
-        return buildWeatherResponseVOError(messages);
+        return buildTradeSummaryResponse(messages);
     }
 
     private Map error(Object message) {
         return Collections.singletonMap("error", message);
     }
 
-    private TradeSummaryResponse buildWeatherResponseVOError(List<String> messages) {
+    private TradeSummaryResponse buildTradeSummaryResponse(List<String> messages) {
         ApiError apiError = new ApiError();
         apiError.setReason(messages.get(0));
         return new TradeSummaryResponseBuilder().withError(apiError).build();
