@@ -10,11 +10,11 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 
 @Documented
-@Constraint(validatedBy = { ZipCodeValidator.class })
+@Constraint(validatedBy = { IdValidator.class })
 @Retention(RetentionPolicy.RUNTIME)
 @Target({FIELD, PARAMETER, METHOD, CONSTRUCTOR, LOCAL_VARIABLE})
-public @interface ValidZipCode {
-    String message() default "{org.hibernate.validator.constraints.ValidZipCode.message}";
+public @interface ValidId {
+    String message() default "{org.hibernate.validator.constraints.ValidId.message}";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
